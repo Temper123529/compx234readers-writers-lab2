@@ -79,8 +79,28 @@ class Writer(threading.Thread):
 def main() -> None:
     random.seed(42)
     monitor = ReadersWritersMonitor()
-    readers = []
-    writers = []
+
+    readers = [
+        Reader(1, monitor),
+        Reader(2, monitor),
+        Reader(3, monitor)
+    ]
+
+    writers = [
+        Writer(1, monitor),
+        Writer(2, monitor)
+    ]
+
+    all_threads = readers + writers
+
+    print("Starting simulation...")
+    for t in all_threads:
+        t.start()
+
+    for t in all_threads:
+        t.join()
+
+    print("All done!")
 
 if __name__ == "__main__":
     main()
