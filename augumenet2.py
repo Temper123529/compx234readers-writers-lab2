@@ -13,33 +13,33 @@ class ReadersWritersMonitor:
 
     def start_read(self, reader_id: int) -> None:
         with self.condition:
-            if self.active_writers > 0:
-                print(f"Reader {reader_id} waiting...")
+            while self.active_writers > 0:
+                print(f"Reader {reader_id} is waiting to read")
                 self.condition.wait()
             self.active_readers += 1
-            print(f"Reader {reader_id} start read. Readers={self.active_readers}")
+            print(f"Reader {reader_id} starts reading. Active readers = {self.active_readers}")
 
     def end_read(self, reader_id: int) -> None:
         with self.condition:
             self.active_readers -= 1
-            print(f"Reader {reader_id} stop read. Readers={self.active_readers}")
+            print(f"Reader {reader_id} stops reading. Active readers = {self.active_readers}")
             if self.active_readers == 0:
                 self.condition.notify_all()
 
     def start_write(self, writer_id: int) -> None:
         with self.condition:
             self.waiting_writers += 1
-            if self.active_readers > 0 or self.active_writers > 0:
-                print(f"Writer {writer_id} waiting...")
+            while self.active_readers > 0 or self.active_writers > 0:
+                print(f"Writer {writer_id} is waiting to write")
                 self.condition.wait()
             self.waiting_writers -= 1
-            self.active_writers = 1
-            print(f"Writer {writer_id} start write")
+            self.active_writers += 1
+            print(f"Writer {writer_id} starts writing")
 
     def end_write(self, writer_id: int) -> None:
         with self.condition:
-            self.active_writers = 0
-            print(f"Writer {writer_id} stop write")
+            self.active_writers -= 1
+            print(f"Writer {writer_id} stops writing")
             self.condition.notify_all()
 
 class Reader(threading.Thread):
@@ -93,14 +93,14 @@ def main() -> None:
 
     all_threads = readers + writers
 
-    print("Starting simulation...")
-    for t in all_threads:
-        t.start()
+    print("Starting Readers-Writers Simulation...")
+    for thread in all_threads:
+        thread.start()
 
-    for t in all_threads:
-        t.join()
+    for thread in all_threads:
+        thread.join()
 
-    print("All done!")
+    print("\nSimulation completed successfully!")
 
 if __name__ == "__main__":
     main()
