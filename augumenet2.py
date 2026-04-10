@@ -28,11 +28,19 @@ class ReadersWritersMonitor:
 
     def start_write(self, writer_id: int) -> None:
         with self.condition:
-            pass
+            self.waiting_writers += 1
+            if self.active_readers > 0 or self.active_writers > 0:
+                print(f"Writer {writer_id} waiting...")
+                self.condition.wait()
+            self.waiting_writers -= 1
+            self.active_writers = 1
+            print(f"Writer {writer_id} start write")
 
     def end_write(self, writer_id: int) -> None:
         with self.condition:
-            pass
+            self.active_writers = 0
+            print(f"Writer {writer_id} stop write")
+            self.condition.notify_all()
 
 class Reader(threading.Thread):
     def __init__(self, reader_id: int, monitor: ReadersWritersMonitor, rounds: int = 3) -> None:
